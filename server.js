@@ -1,10 +1,36 @@
+if(process.env.NODE_ENV !=='production'){
+    require('dotenv').config()
+}
+
+ 
+
 const express =require('express')
 const app =express()
 const bcrypt =require('bcrypt')
- 
+const passport= require('passport')
+const initializePassport=require('./passport-config') 
+const flash=require('express-flash')
+const session = require('express-session')
+
+
+initializePassport(
+    passport,
+    email => users.find(user => user.email === email),
+    id => users.find(user => user.id === id)
+    )
  const users = []
-app.set('view-engine','ejs')
+app.set('view-engine','ejs') 
 app.use(express.urlencoded({extended:false}))
+app.use(flash())
+app.use(session({
+    secret:process.env.SESSION_SECRET, 
+    resave: false,
+    saveUninitialized: false
+}))
+app.use(passport.initialize())
+app.use(session())
+
+
 
 app.get('/',function(req,res){
 
@@ -36,7 +62,7 @@ users.push({
 res.redirect('/login')
 
 } 
-catch(Exception) {
+catch(e) {
 
     res.redirect('/register')
 
@@ -44,8 +70,9 @@ catch(Exception) {
 console.log(users)
 })
 
-app.post('/login', function(req,res){
-
-    
-})
-app.listen(4000)    
+app.post('/login',passport.authenticate('local',{
+successRedirect:'/',
+failureRedirect: '/login',
+failureFlash:true
+}))
+app.listen(4000)      
