@@ -11,7 +11,7 @@ const passport= require('passport')
 const initializePassport=require('./passport-config') 
 const flash=require('express-flash')
 const session = require('express-session')
-
+const methodOverride=require('method-override')
 
 initializePassport(
     passport,
@@ -29,25 +29,26 @@ app.use(session({
 }))
 app.use(passport.initialize())
 app.use(session())
+app.use(methodOverride('_method'))
 
 
 
-app.get('/',function(req,res){
+app.get('/',checkAuthenticated ,function(req,res){
 
-    res.render('index.ejs',{name:'Hadhi'})
+    res.render('index.ejs',{ name: "hadhi" })
 
 })
-app.get('/login', function(req,res){ 
+app.get('/login',checkNotAuthenticated ,function(req,res){ 
 
     res.render('login.ejs')
 
 })
-app.get('/register', function(req,res){
+app.get('/register', checkNotAuthenticated,function(req,res){
 
     res.render('register.ejs')
 
 })
-app.post('/register',async function(req,res){ 
+app.post('/register',checkNotAuthenticated,async function(req,res){ 
 
 try {
 
@@ -62,17 +63,38 @@ users.push({
 res.redirect('/login')
 
 } 
-catch(e) {
+catch(Exception) {
 
     res.redirect('/register')
 
 }
 console.log(users)
 })
+ 
+app.delete('/logout',(req,res)=>{
+    req.logOut(
+        res.redirect('/login')
+    )
+})
 
-app.post('/login',passport.authenticate('local',{
+app.post('/login',checkNotAuthenticated,passport.authenticate('local',{
 successRedirect:'/',
 failureRedirect: '/login',
 failureFlash:true
 }))
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/login')
+  }
+  
+  function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return res.redirect('/')
+    }
+    next()
+  }
 app.listen(4000)      
