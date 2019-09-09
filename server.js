@@ -11,8 +11,8 @@ const passport= require('passport')
 const initializePassport=require('./passport-config') 
 const flash=require('express-flash')
 const session = require('express-session')
-const methodOverride=require('method-override')
-
+const methodOverride=require('method-override' )
+   
 initializePassport(
     passport,
     email => users.find(user => user.email === email),
